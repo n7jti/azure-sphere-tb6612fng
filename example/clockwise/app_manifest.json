@@ -1,0 +1,15 @@
+{
+    "SchemaVersion": 1,
+    "Name": "clockwise",
+    "ComponentId": "d05df98f-83e6-47f6-ab4b-fbb29b094c3e",
+    "EntryPoint": "/bin/app",
+    "CmdArgs": [ ],
+    "Capabilities": {
+        "AllowedConnections": [ ],
+        "Pwm": [
+            "PWM-CONTROLLER-1"
+        ],
+        "Gpio": [8,9,10,11]
+    },
+    "ApplicationType": "Default"
+}

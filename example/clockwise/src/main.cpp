@@ -1,4 +1,15 @@
-#include "../../tb6621fng.h"
+
+
+#include <signal.h>
+#include <string.h>
+#include <unistd.h>
+
+#include <applibs/eventloop.h>
+#include <applibs/log.h>
+#include <applibs/pwm.h>
+#include <applibs/gpio.h>
+
+#include "../../../tb6621fng.h"
 
 // <summary>
 /// Exit codes for this application. These are used for the
@@ -10,6 +21,9 @@ typedef enum
     ExitCode_Success = 0,
     ExitCode_TermHandler_SigTerm = 1,
     ExitCode_Init_EventLoop = 2,
+    ExitCode_Main_EventLoopFail = 3,
+    ExitCode_PWM_Open = 4, 
+    ExitCode_GPIO_Open = 5, 
 } ExitCode;
 
 
@@ -17,6 +31,11 @@ static volatile sig_atomic_t exitCode = ExitCode_Success;
 
 // Timer / polling
 static EventLoop *eventLoop = NULL;
+
+static int fd_pwm = -1; 
+static int fd_in1 = -1;
+static int fd_in2 = -1;
+
 
 
 /// <summary>
@@ -49,6 +68,24 @@ static ExitCode InitPeripheralsAndHandlers(void)
         return ExitCode_Init_EventLoop;
     }
 
+    // open PWM
+    fd_pwm = PWM_Open(1);
+    if (fd_pwm < 0){
+        return ExitCode_PWM_Open; 
+    }
+
+    // open GPIO
+    fd_in1 = GPIO_OpenAsOutput(8, GPIO_OutputMode_PushPull, GPIO_Value_Low);
+    if (fd_in1 < 0){
+        return ExitCode_GPIO_Open; 
+    }
+
+    fd_in2 = GPIO_OpenAsOutput(9, GPIO_OutputMode_PushPull, GPIO_Value_Low);
+    if (fd_in2 < 0){
+        return ExitCode_GPIO_Open; 
+    }
+
+
     return ExitCode_Success; 
 }
 
@@ -58,6 +95,15 @@ static ExitCode InitPeripheralsAndHandlers(void)
 static void ClosePeripheralsAndHandlers(void)
 {
     Log_Debug("Closing file descriptors\n");
+
+    close(fd_pwm);
+    fd_pwm = -1;
+
+    close(fd_in1);
+    fd_in1 = -1; 
+
+    close(fd_in2); 
+    fd_in2 = -1; 
 
 }
 

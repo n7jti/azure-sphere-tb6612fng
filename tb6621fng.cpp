@@ -1,8 +1,9 @@
 #include "tb6621fng.h"
 
 #include <applibs/gpio.h>
+#include <applibs/pwm.h>
 
-int tb6621fng::init(int pwm_fd, PWMChannelId pwm_ch, int in1_gpio_fd, int in2_gpio_fd)
+int tb6621fng::init(int pwm_fd, PWM_ChannelId pwm_ch, int in1_gpio_fd, int in2_gpio_fd)
 {
     _fdPwm = pwm_fd;
     _pwm_ch = pwm_ch;
@@ -11,9 +12,9 @@ int tb6621fng::init(int pwm_fd, PWMChannelId pwm_ch, int in1_gpio_fd, int in2_gp
     _speed = 0; 
 
     PwmState pwmState;
-    pwmSttate.period_nsec = 20000;
+    pwmState.period_nsec = 20000;
     pwmState.dutyCycle_nsec = 0; 
-    pwmState.pwmPolarity = PWM_Polarity_Normal;
+    pwmState.polarity = PWM_Polarity_Normal;
     pwmState.enabled = false;
 
     int ret = PWM_Apply(_fdPwm, _pwm_ch, &pwmState);
@@ -30,7 +31,7 @@ int tb6621fng::move(int32_t speed)
     // get the magnitude
     uint32_t magnitude = 0;
     if (speed < 0) {
-        magnitude =  -speed 
+        magnitude =  -speed;
     }
     else {
         magnitude = speed;
@@ -42,12 +43,11 @@ int tb6621fng::move(int32_t speed)
     }
 
     unsigned int dutyCycle = 20000 / 255 * magnitude; 
-    int ret = 0;
 
     PwmState pwmState;
     pwmState.period_nsec = 20000;
     pwmState.dutyCycle_nsec = dutyCycle; 
-    pwmState.pwmPolarity = PWM_Polarity_Normal;
+    pwmState.polarity = PWM_Polarity_Normal;
     pwmState.enabled = false;
 
     int ret = PWM_Apply(_fdPwm, _pwm_ch, &pwmState);
@@ -58,7 +58,7 @@ int tb6621fng::move(int32_t speed)
             ret = GPIO_SetValue(_fdIn1, GPIO_Value_High);
 
             if (ret == 0) {
-                GPIO_SetValue(_fdIn2, GPIO_Value_Low; 
+                GPIO_SetValue(_fdIn2, GPIO_Value_Low); 
             }
         }
         else {
@@ -66,7 +66,7 @@ int tb6621fng::move(int32_t speed)
             ret = GPIO_SetValue(_fdIn1, GPIO_Value_Low);
 
             if (ret == 0) {
-                GPIO_SetValue(_fdIn2, GPIO_Value_High; 
+                GPIO_SetValue(_fdIn2, GPIO_Value_High); 
             }
         }
     }
@@ -96,5 +96,7 @@ int tb6621fng::stop()
     if (ret == 0) {
         GPIO_SetValue(_fdIn2, GPIO_Value_Low); 
     }
+
+    return ret;
 
 }
